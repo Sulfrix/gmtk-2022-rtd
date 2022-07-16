@@ -2,8 +2,8 @@ extends RigidBody2D
 
 
 # Declare member variables here. Examples:
-var speed = 80
-var myFriction = 4
+var mySpeed = 100
+var myFriction = 6
 var velocity = 0
 
 var leftInput = 0
@@ -13,7 +13,6 @@ var downInput = 0
 
 var bullet = preload("res://Bullets/Bullet.tscn")
 var bulletShootTime = 0
-var bulletCooldownLevel = 0
 
 var runtime = 0
 
@@ -27,9 +26,11 @@ func _process(delta):
 	runtime += delta
 	
 	var idealSpeed = Vector2(rightInput - leftInput, downInput - upInput)
-	idealSpeed = idealSpeed.normalized() * speed
+	idealSpeed = idealSpeed.normalized() * speed()
+	
 	var currentSpeed = get_linear_velocity()
-	var totalFriction = min(myFriction * delta, 1)
+	var totalFriction = min(friction() * delta, 1)
+	
 	var force = totalFriction * (idealSpeed - currentSpeed)
 	var newVelocity = get_linear_velocity() + force
 	
@@ -37,7 +38,7 @@ func _process(delta):
 	
 	pass
 
-func spawnBullet(_keyPressed):
+func spawnBullet(keyPressed):
 	if runtime - bulletShootTime < bulletCooldown(): return
 	
 	var bulletInstance = bullet.instance()
@@ -45,7 +46,13 @@ func spawnBullet(_keyPressed):
 	bulletShootTime = runtime
 
 func bulletCooldown():
-	return 0.5 * (10 - bulletCooldownLevel) / 10
+	return 0.5 * (4 - get_node("..").bulletCooldownLevel) / 4
+
+func friction():
+	return myFriction * 3 / (3 + get_node("..").playerFrictionLevel)
+
+func speed():
+	return mySpeed / 3 * (3 + get_node("..").playerSpeedLevel)
 
 func _input(event):
 	if event.is_action_pressed("ui_left"):
